@@ -42,6 +42,18 @@ const formatFecha = (dateValue) => {
 // También se encarga de quitar espacios en blanco de sobra si la DB usa CHAR en lugar de VARCHAR
 const cleanStr = (str) => typeof str === 'string' ? str.trim() : str;
 
+const MAPA_NIVELES = {
+    'LP': 'PEDAGOGÍA',
+    'LM': 'MERCADOTECNIA',
+    'LD': 'DERECHO',
+    'LCP': 'CONTADURÍA PÚBLICA',
+    'LA': 'ADMINISTRACIÓN',
+    'LSP': 'PSICOLOGÍA',
+    'ESPDU': 'DOCENCIA UNIVERSITARIA',
+    'ESPAN': 'ADMINISTRACIÓN DE NEGOCIOS',
+    'ESPDP': 'DERECHO PENAL'
+};
+
 // Mapeo y traducción al JSON de respuesta de un registro de Alumno
 const mapAlumno = (alumno) => {
     // Traducción de sexo
@@ -53,8 +65,14 @@ const mapAlumno = (alumno) => {
         sexoTraducido = 'H';
     }
 
+    const nivelCrudo = cleanStr(alumno.NIVEL) || '';
+    const nivelUpper = nivelCrudo.toUpperCase();
+    const licenciaturaTraducida = MAPA_NIVELES[nivelUpper] 
+        || nivelCrudo.replace(/LICENCIATURA EN /i, '').trim().toUpperCase();
+
     return {
-        nombre_completo: `${cleanStr(alumno.NOMBRE) || ''} ${cleanStr(alumno.PATERNO) || ''} ${cleanStr(alumno.MATERNO) || ''}`.trim(),
+        licenciatura: licenciaturaTraducida,
+        nombre_completo: `${cleanStr(alumno.PATERNO) || ''} ${cleanStr(alumno.MATERNO) || ''} ${cleanStr(alumno.NOMBRE) || ''}`.trim(),
         matricula: cleanStr(alumno.MATRICULA),
         curp: cleanStr(alumno.CURP),
         fecha_nacimiento: formatFecha(alumno.FECHANACIMIENTO),
@@ -62,11 +80,10 @@ const mapAlumno = (alumno) => {
         domicilio: cleanStr(alumno.DOMICILIO),
         cp: cleanStr(alumno.CP),
         municipio: cleanStr(alumno.MUNICIPIO),
-        estado: cleanStr(alumno.ESTADO),
+        estado: alumno.ESTADO, // Tal cual viene de Firebird
         telefono: cleanStr(alumno.TELEFONO),
         celular: cleanStr(alumno.CELULAR),
         email: cleanStr(alumno.EMAIL),
-        lugar_nacimiento: cleanStr(alumno.LUGAR_NACIMIENTO),
         estado_nacimiento: cleanStr(alumno.ESTADO_NACIMIENTO),
         nacionalidad: cleanStr(alumno.NACIONALIDAD),
         escuela_procedencia: cleanStr(alumno.ESCUELA_PROCEDENCIA),
@@ -107,8 +124,8 @@ app.get('/api/legacy/alumnos/buscar', (req, res) => {
     const query = `
         SELECT NOMBRE, PATERNO, MATERNO, MATRICULA, CURP, FECHANACIMIENTO, SEXO, 
                DOMICILIO, CP, MUNICIPIO, ESTADO, TELEFONO, CELULAR, EMAIL, 
-               LUGAR_NACIMIENTO, ESTADO_NACIMIENTO, NACIONALIDAD, ESCUELA_PROCEDENCIA, 
-               ESTADO_ESCOLARIDAD 
+               ESTADO_NACIMIENTO, NACIONALIDAD, ESCUELA_PROCEDENCIA, 
+               ESTADO_ESCOLARIDAD, NIVEL 
         FROM ALUMNOS 
         WHERE (NOMBRE || ' ' || PATERNO || ' ' || MATERNO) CONTAINING ?
     `;
@@ -147,8 +164,8 @@ app.get('/api/legacy/alumno/:matricula', (req, res) => {
     const query = `
         SELECT NOMBRE, PATERNO, MATERNO, MATRICULA, CURP, FECHANACIMIENTO, SEXO, 
                DOMICILIO, CP, MUNICIPIO, ESTADO, TELEFONO, CELULAR, EMAIL, 
-               LUGAR_NACIMIENTO, ESTADO_NACIMIENTO, NACIONALIDAD, ESCUELA_PROCEDENCIA, 
-               ESTADO_ESCOLARIDAD 
+               ESTADO_NACIMIENTO, NACIONALIDAD, ESCUELA_PROCEDENCIA, 
+               ESTADO_ESCOLARIDAD, NIVEL 
         FROM ALUMNOS 
         WHERE MATRICULA = ?
     `;
