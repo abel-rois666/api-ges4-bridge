@@ -119,16 +119,22 @@ app.get('/api/legacy/alumnos/buscar', (req, res) => {
 
     // En Firebird, "CONTAINING" hace una búsqueda insensible a mayúsculas/minúsculas
     // sin necesidad de comodines % ni de la función UPPER() que causa errores de charset.
-    const searchTerm = queryParam;
+    const words = queryParam.trim().split(/\s+/);
 
-    const query = `
+    let query = `
         SELECT NOMBRE, PATERNO, MATERNO, MATRICULA, CURP, FECHANACIMIENTO, SEXO, 
                DOMICILIO, CP, MUNICIPIO, ESTADO, TELEFONO, CELULAR, EMAIL, 
                ESTADO_NACIMIENTO, NACIONALIDAD, ESCUELA_PROCEDENCIA, 
                ESTADO_ESCOLARIDAD, NIVEL 
         FROM ALUMNOS 
-        WHERE (NOMBRE || ' ' || PATERNO || ' ' || MATERNO) CONTAINING ?
+        WHERE 1=1
     `;
+    const params = [];
+
+    words.forEach(word => {
+        query += ` AND (COALESCE(NOMBRE, '') || ' ' || COALESCE(PATERNO, '') || ' ' || COALESCE(MATERNO, '')) CONTAINING ?`;
+        params.push(word);
+    });
 
     Firebird.attach(dbOptions, (err, db) => {
         if (err) {
@@ -136,7 +142,7 @@ app.get('/api/legacy/alumnos/buscar', (req, res) => {
             return res.status(500).json({ error: 'Error de conexión a la base de datos' });
         }
 
-        db.query(query, [searchTerm], (err, result) => {
+        db.query(query, params, (err, result) => {
             // Siempre liberamos la conexión después de usarla
             db.detach();
 
