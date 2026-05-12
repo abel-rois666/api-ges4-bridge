@@ -14,13 +14,13 @@ app.use(express.json());
 // Configuración de la conexión a Firebird
 const dbOptions = {
     host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT, 10) || 3050,
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3050,
     database: process.env.DB_PATH,
-    user: process.env.DB_USER || 'SYSDBA',
-    password: process.env.DB_PASSWORD || 'masterkey',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
     lowercase_keys: false, // Mantiene los nombres de las columnas en mayúsculas tal cual la DB
-    role: null,            
-    pageSize: 4096         
+    role: null,
+    pageSize: 4096
 };
 
 // ==========================================
@@ -67,7 +67,7 @@ const mapAlumno = (alumno) => {
 
     const nivelCrudo = cleanStr(alumno.NIVEL) || '';
     const nivelUpper = nivelCrudo.toUpperCase();
-    const licenciaturaTraducida = MAPA_NIVELES[nivelUpper] 
+    const licenciaturaTraducida = MAPA_NIVELES[nivelUpper]
         || nivelCrudo.replace(/LICENCIATURA EN /i, '').trim().toUpperCase();
 
     return {
@@ -102,7 +102,7 @@ app.get('/api/test-db', (req, res) => {
             console.error('Error al conectar a Firebird en test-db:', err);
             return res.status(500).json({ error: 'Error de conexión a la base de datos', details: err.message });
         }
-        
+
         // Si conectó correctamente, nos desconectamos
         db.detach();
         return res.json({ status: "success", message: "Conexión a Firebird exitosa" });
@@ -153,7 +153,7 @@ app.get('/api/legacy/alumnos/buscar', (req, res) => {
 
             if (!result || result.length === 0) {
                 // Devolvemos un arreglo vacío si no hay coincidencias
-                return res.json([]); 
+                return res.json([]);
             }
 
             // Mapeamos todos los resultados usando la función de ayuda
