@@ -1,0 +1,115 @@
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Starting tunnel tunnelID=987f407a-fc4d-4857-941b-4736b4906bab
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Version 2026.3.0 (Checksum 59b12880b24af581cf5b1013db601c7d843b9b097e9c78aa5957c7f39f741885)
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF GOOS: windows, GOVersion: go1.24.13, GoArch: amd64
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Settings: map[cred-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json credentials-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json]
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF cloudflared will not automatically update on Windows systems.
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Generated Connector ID: 4f0cfa59-d89e-47ea-b59b-a7b26d56314b
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Initial protocol quic
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.73
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Registered tunnel connection connIndex=0 connection=6b3161cb-4137-4250-bffe-1b7336bbbbc0 event=0 ip=198.41.200.73 location=dfw06 protocol=quic
+2026-05-13T13:23:41: 2026-05-13T19:23:41Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.192.77
+2026-05-13T13:23:42: 2026-05-13T19:23:42Z INF Registered tunnel connection connIndex=1 connection=bec5f964-8fbe-4b40-bd83-94b7c3f10c76 event=0 ip=198.41.192.77 location=qro01 protocol=quic
+2026-05-13T13:23:42: 2026-05-13T19:23:42Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T13:23:43: 2026-05-13T19:23:43Z INF Registered tunnel connection connIndex=2 connection=daf01009-caaf-4eef-8fef-77d6943b6ed1 event=0 ip=198.41.192.167 location=qro01 protocol=quic
+2026-05-13T13:23:43: 2026-05-13T19:23:43Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.200.113
+2026-05-13T13:23:44: 2026-05-13T19:23:44Z INF Registered tunnel connection connIndex=3 connection=bd4f4fee-2325-4302-8ed5-3da66e0df17d event=0 ip=198.41.200.113 location=dfw08 protocol=quic
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Starting tunnel tunnelID=987f407a-fc4d-4857-941b-4736b4906bab
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Version 2026.3.0 (Checksum 59b12880b24af581cf5b1013db601c7d843b9b097e9c78aa5957c7f39f741885)
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF GOOS: windows, GOVersion: go1.24.13, GoArch: amd64
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Settings: map[config:C:\Users\CUOM-CE-2\.cloudflared\config.yml cred-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json credentials-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json]
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF cloudflared will not automatically update on Windows systems.
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Generated Connector ID: b3a3f597-6db6-4c15-9d74-d55c3505ed81
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Initial protocol quic
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Registered tunnel connection connIndex=0 connection=74167504-9ef5-4465-9f86-b82d2bba1a03 event=0 ip=198.41.200.13 location=dfw08 protocol=quic
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.192.67
+2026-05-13T13:44:22: 2026-05-13T19:44:22Z INF Registered tunnel connection connIndex=1 connection=0223e8a8-ffa8-416a-afc0-f0ad777c4588 event=0 ip=198.41.192.67 location=qro01 protocol=quic
+2026-05-13T13:44:23: 2026-05-13T19:44:23Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.192.37
+2026-05-13T13:44:23: 2026-05-13T19:44:23Z INF Registered tunnel connection connIndex=2 connection=8c14ca24-b783-4171-89ba-27633fbb45ec event=0 ip=198.41.192.37 location=qro01 protocol=quic
+2026-05-13T13:44:24: 2026-05-13T19:44:24Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.200.233
+2026-05-13T13:44:24: 2026-05-13T19:44:24Z INF Registered tunnel connection connIndex=3 connection=ab93d366-acb4-4079-b332-bcb977d02a7e event=0 ip=198.41.200.233 location=dfw06 protocol=quic
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Starting tunnel tunnelID=987f407a-fc4d-4857-941b-4736b4906bab
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Version 2026.3.0 (Checksum 59b12880b24af581cf5b1013db601c7d843b9b097e9c78aa5957c7f39f741885)
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF GOOS: windows, GOVersion: go1.24.13, GoArch: amd64
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Settings: map[config:C:\Users\CUOM-CE-2\.cloudflared\config.yml cred-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json credentials-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json]
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF cloudflared will not automatically update on Windows systems.
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Generated Connector ID: 08ce25f2-105d-4899-9a7c-cbc2499c6fe8
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Initial protocol quic
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.23
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Registered tunnel connection connIndex=0 connection=9ab916b1-7c8f-48be-8606-a3ae524cc73b event=0 ip=198.41.200.23 location=dfw08 protocol=quic
+2026-05-13T13:53:51: 2026-05-13T19:53:51Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.192.47
+2026-05-13T13:53:52: 2026-05-13T19:53:52Z INF Registered tunnel connection connIndex=1 connection=17dec56d-416e-4303-9d43-7b5f86a5fab7 event=0 ip=198.41.192.47 location=qro01 protocol=quic
+2026-05-13T13:53:52: 2026-05-13T19:53:52Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.200.53
+2026-05-13T13:53:53: 2026-05-13T19:53:53Z INF Registered tunnel connection connIndex=2 connection=c18a70f2-ed1a-41f2-b48b-536a3d2c8699 event=0 ip=198.41.200.53 location=dfw08 protocol=quic
+2026-05-13T13:53:53: 2026-05-13T19:53:53Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.192.77
+2026-05-13T13:53:54: 2026-05-13T19:53:54Z INF Registered tunnel connection connIndex=3 connection=ba2d03bc-97db-4ac6-9221-1eeaf96019c9 event=0 ip=198.41.192.77 location=qro01 protocol=quic
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF Starting tunnel tunnelID=987f407a-fc4d-4857-941b-4736b4906bab
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF Version 2026.3.0 (Checksum 59b12880b24af581cf5b1013db601c7d843b9b097e9c78aa5957c7f39f741885)
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF GOOS: windows, GOVersion: go1.24.13, GoArch: amd64
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF Settings: map[config:C:\Users\CUOM-CE-2\.cloudflared\config.yml cred-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json credentials-file:C:\Users\CUOM-CE-2\.cloudflared\987f407a-fc4d-4857-941b-4736b4906bab.json]
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF cloudflared will not automatically update on Windows systems.
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF Generated Connector ID: 3af35f3e-6e70-473e-afe3-0752bb665037
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF Initial protocol quic
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF ICMP proxy will use 10.30.1.249 as source for IPv4
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF ICMP proxy will use fe80::b9ee:a7e5:7dd4:f97f in zone Wi-Fi 2 as source for IPv6
+2026-05-13T13:59:25: 2026-05-13T19:59:25Z INF Starting metrics server on 127.0.0.1:20241/metrics
+2026-05-13T13:59:26: 2026-05-13T19:59:26Z INF Registered tunnel connection connIndex=0 connection=8e3abd8b-37d4-4349-9fa8-dc41376bee07 event=0 ip=198.41.200.13 location=dfw06 protocol=quic
+2026-05-13T13:59:26: 2026-05-13T19:59:26Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.192.227
+2026-05-13T13:59:26: 2026-05-13T19:59:26Z INF Registered tunnel connection connIndex=1 connection=533633c8-ad15-4c58-a327-35a5ffdb6af3 event=0 ip=198.41.192.227 location=qro01 protocol=quic
+2026-05-13T13:59:27: 2026-05-13T19:59:27Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T13:59:27: 2026-05-13T19:59:27Z INF Registered tunnel connection connIndex=2 connection=be2bbba1-090c-48bb-96cc-295dac346aa7 event=0 ip=198.41.192.167 location=qro01 protocol=quic
+2026-05-13T13:59:28: 2026-05-13T19:59:28Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.200.63
+2026-05-13T13:59:28: 2026-05-13T19:59:28Z INF Registered tunnel connection connIndex=3 connection=77cf5223-d8c3-4a7c-ab84-78e9121d6b12 event=0 ip=198.41.200.63 location=dfw08 protocol=quic
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z ERR failed to accept incoming stream requests error="failed to accept QUIC stream: timeout: no recent network activity" connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z ERR failed to run the datagram handler error="timeout: no recent network activity" connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z WRN failed to serve tunnel connection error="accept stream listener encountered a failure while serving" connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z WRN Serve tunnel error error="accept stream listener encountered a failure while serving" connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z INF Retrying connection in up to 1s connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z ERR failed to run the datagram handler error="timeout: no recent network activity" connIndex=1 event=0 ip=198.41.192.227
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z ERR failed to accept incoming stream requests error="failed to accept QUIC stream: timeout: no recent network activity" connIndex=1 event=0 ip=198.41.192.227
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z WRN failed to serve tunnel connection error="datagram manager encountered a failure while serving" connIndex=1 event=0 ip=198.41.192.227
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z WRN Serve tunnel error error="datagram manager encountered a failure while serving" connIndex=1 event=0 ip=198.41.192.227
+2026-05-13T14:02:31: 2026-05-13T20:02:31Z INF Retrying connection in up to 1s connIndex=1 event=0 ip=198.41.192.227
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z ERR failed to accept incoming stream requests error="failed to accept QUIC stream: timeout: no recent network activity" connIndex=3 event=0 ip=198.41.200.63
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z ERR failed to run the datagram handler error="timeout: no recent network activity" connIndex=3 event=0 ip=198.41.200.63
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z WRN failed to serve tunnel connection error="accept stream listener encountered a failure while serving" connIndex=3 event=0 ip=198.41.200.63
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z WRN Serve tunnel error error="accept stream listener encountered a failure while serving" connIndex=3 event=0 ip=198.41.200.63
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z INF Retrying connection in up to 1s connIndex=3 event=0 ip=198.41.200.63
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z WRN Connection terminated error="accept stream listener encountered a failure while serving" connIndex=3
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z WRN Connection terminated error="datagram manager encountered a failure while serving" connIndex=1
+2026-05-13T14:02:32: 2026-05-13T20:02:32Z WRN Connection terminated error="accept stream listener encountered a failure while serving" connIndex=2
+2026-05-13T14:02:34: 2026-05-13T20:02:34Z ERR failed to run the datagram handler error="timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T14:02:34: 2026-05-13T20:02:34Z ERR failed to accept incoming stream requests error="failed to accept QUIC stream: timeout: no recent network activity" connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T14:02:34: 2026-05-13T20:02:34Z ERR failed to serve tunnel connection error="datagram manager encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T14:02:34: 2026-05-13T20:02:34Z ERR Serve tunnel error error="datagram manager encountered a failure while serving" connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T14:02:34: 2026-05-13T20:02:34Z INF Retrying connection in up to 1s connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T14:02:34: 2026-05-13T20:02:34Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=0 event=0 ip=198.41.200.13
+2026-05-13T14:02:34: 2026-05-13T20:02:34Z INF Registered tunnel connection connIndex=0 connection=b670ae57-658a-4b9f-a965-81d97c8d086f event=0 ip=198.41.200.13 location=dfw06 protocol=quic
+2026-05-13T14:02:46: 2026-05-13T20:02:46Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=2 event=0 ip=198.41.192.167
+2026-05-13T14:02:46: 2026-05-13T20:02:46Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=3 event=0 ip=198.41.200.63
+2026-05-13T14:02:46: 2026-05-13T20:02:46Z INF Tunnel connection curve preferences: [X25519MLKEM768 CurveP256] connIndex=1 event=0 ip=198.41.192.227
+2026-05-13T14:02:46: 2026-05-13T20:02:46Z INF Registered tunnel connection connIndex=2 connection=3426d36d-abb8-4d12-857b-30e9ce93be9e event=0 ip=198.41.192.167 location=qro01 protocol=quic
+2026-05-13T14:02:46: 2026-05-13T20:02:46Z INF Registered tunnel connection connIndex=1 connection=8eff9c71-aa56-4015-a985-2d190c9bac4a event=0 ip=198.41.192.227 location=qro01 protocol=quic
+2026-05-13T14:02:46: 2026-05-13T20:02:46Z INF Registered tunnel connection connIndex=3 connection=303765f1-0da7-465f-9766-84b75a0936d1 event=0 ip=198.41.200.63 location=dfw08 protocol=quic
