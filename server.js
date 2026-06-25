@@ -205,6 +205,103 @@ app.get('/api/legacy/alumno/:matricula', (req, res) => {
     });
 });
 
+// 4. Endpoint de Extracción de Estructura Académica (GET /api/legacy/academico/planes)
+app.get('/api/legacy/academico/planes', (req, res) => {
+    const query = `
+        SELECT 
+            TRIM(N.NIVEL) AS NIVEL_CLAVE, TRIM(N.DESCRIPCION) AS NOMBRE_CARRERA,
+            TRIM(P.ID_PLAN) AS ID_PLAN, TRIM(P.NOMBRE_PLAN) AS NOMBRE_PLAN,
+            TRIM(E.ID_ETAPA) AS ID_ETAPA, TRIM(E.DESCRIPCION) AS NOMBRE_ETAPA,
+            TRIM(D.CLAVEASIGNATURA) AS CLAVEASIGNATURA, TRIM(D.NOMBREASIGNATURA) AS NOMBREASIGNATURA, D.CREDITOS
+        FROM CFGNIVELES N
+        JOIN CFGPLANES_MST P ON N.NIVEL = P.NIVEL AND N.ID_ESCUELA = P.ID_ESCUELA
+        JOIN CFGPLANES_ETAPAS E ON P.ID_PLAN = E.ID_PLAN AND E.ID_ESCUELA = P.ID_ESCUELA
+        JOIN CFGPLANES_DET D ON E.ID_PLAN = D.ID_PLAN AND E.ID_ETAPA = D.ID_ETAPA AND D.ID_ESCUELA = E.ID_ESCUELA
+        WHERE P.ACTIVO = 'A' AND D.ID_TIPOEVAL = 'A'
+        ORDER BY N.NIVEL, P.ID_PLAN, E.ID_ETAPA, D.CLAVEASIGNATURA
+    `;
+
+    Firebird.attach(dbOptions, (err, db) => {
+        if (err) {
+            console.error('Error al conectar a Firebird en planes académicos:', err);
+            return res.status(500).json({ error: 'Error de conexión a la base de datos', details: err.message });
+        }
+
+        db.query(query, (err, result) => {
+            // Siempre liberamos la conexión después de usarla
+            db.detach();
+
+            if (err) {
+                console.error('Error al ejecutar la consulta de planes académicos:', err);
+                return res.status(500).json({ error: 'Error al consultar la base de datos' });
+            }
+
+            if (!result || result.length === 0) {
+                return res.json([]);
+            }
+
+            // Transformar el resultado plano a formato jerárquico
+            const nivelesMap = new Map();
+
+            result.forEach(row => {
+                const nivelClave = row.NIVEL_CLAVE;
+                const nivelDescripcion = row.NOMBRE_CARRERA;
+                const idPlan = row.ID_PLAN;
+                const nombrePlan = row.NOMBRE_PLAN;
+                const idEtapa = row.ID_ETAPA;
+                const nombreEtapa = row.NOMBRE_ETAPA;
+                const claveAsignatura = row.CLAVEASIGNATURA;
+                const nombreAsignatura = row.NOMBREASIGNATURA;
+                const creditos = row.CREDITOS;
+
+                // 1. Obtener o crear el nivel
+                if (!nivelesMap.has(nivelClave)) {
+                    nivelesMap.set(nivelClave, {
+                        nivel_clave: nivelClave,
+                        nivel_descripcion: nivelDescripcion,
+                        planes: []
+                    });
+                }
+                const nivelNode = nivelesMap.get(nivelClave);
+
+                // 2. Obtener o crear el plan dentro de ese nivel
+                let planNode = nivelNode.planes.find(p => p.id_plan === idPlan);
+                if (!planNode) {
+                    planNode = {
+                        id_plan: idPlan,
+                        nombre_plan: nombrePlan,
+                        etapas: []
+                    };
+                    nivelNode.planes.push(planNode);
+                }
+
+                // 3. Obtener o crear la etapa dentro de ese plan
+                let etapaNode = planNode.etapas.find(e => e.id_etapa === idEtapa);
+                if (!etapaNode) {
+                    etapaNode = {
+                        id_etapa: idEtapa,
+                        descripcion: nombreEtapa,
+                        asignaturas: []
+                    };
+                    planNode.etapas.push(etapaNode);
+                }
+
+                // 4. Agregar la asignatura dentro de la etapa si viene información
+                if (claveAsignatura) {
+                    etapaNode.asignaturas.push({
+                        clave: claveAsignatura,
+                        nombre: nombreAsignatura,
+                        creditos: creditos ? Number(creditos) : 0
+                    });
+                }
+            });
+
+            const responseJson = Array.from(nivelesMap.values());
+            return res.json(responseJson);
+        });
+    });
+});
+
 app.listen(port, '0.0.0.0', () => {
     console.log(`Servidor puente de Firebird (GES 4) corriendo en http://0.0.0.0:${port} y aceptando conexiones externas`);
 });
