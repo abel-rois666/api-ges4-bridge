@@ -302,6 +302,116 @@ app.get('/api/legacy/academico/planes', (req, res) => {
     });
 });
 
+// Endpoint de Extracción de Kardex (Refactorizado con JOIN y Unificación)
+app.get('/api/legacy/kardex/:matricula', (req, res) => {
+    const { matricula } = req.params;
+
+    // 1 VIAJE DE RED: Hacemos el cruce de MATRICULA a NUMEROALUMNO directamente en SQL
+    const query = `
+        SELECT 
+            TRIM(K.ID_PLAN) AS CLAVE_PLAN,
+            TRIM(K.CLAVEASIGNATURA) AS CLAVE_ASIGNATURA,
+            TRIM(K.ID_EVAL) AS ID_EVAL,
+            K.CALIFICACION_1 AS CALIFICACION,
+            K.FECHA AS FECHA_EVALUACION,
+            K.INICIAL,
+            K.PERIODO,
+            TRIM(O.OBSERVACIONES) AS OBSERVACION
+        FROM ALUMNOS A
+        JOIN ALUMNOS_KARDEX K ON A.NUMEROALUMNO = K.NUMEROALUMNO
+        LEFT JOIN ALUMNOS_KARDEX_OBS O 
+            ON K.NUMEROALUMNO = O.NUMEROALUMNO 
+            AND K.ID_PLAN = O.ID_PLAN 
+            AND K.CLAVEASIGNATURA = O.CLAVEASIGNATURA 
+            AND K.ID_TIPOEVAL = O.ID_TIPOEVAL
+            AND K.ID_EVAL = O.ID_EVAL
+        WHERE A.MATRICULA = ?
+        ORDER BY K.INICIAL, K.PERIODO, K.CLAVEASIGNATURA, K.ID_EVAL
+    `;
+
+    Firebird.attach(dbOptions, (err, db) => {
+        if (err) {
+            console.error('Error al conectar a Firebird en kardex:', err);
+            return res.status(500).json({ error: 'Error de conexión a la base de datos' });
+        }
+
+        db.query(query, [matricula], (err, rows) => {
+            db.detach();
+
+            if (err) {
+                console.error('Error al extraer Kardex:', err);
+                return res.status(500).json({ error: 'Error al consultar la base de datos' });
+            }
+
+            if (!rows || rows.length === 0) {
+                return res.json([]);
+            }
+
+            const kardexMap = {};
+
+            rows.forEach(row => {
+                const cal = row.CALIFICACION === -999 ? null : Number(row.CALIFICACION);
+                const idEval = cleanStr(row.ID_EVAL);
+                
+                // ROBUSTEZ: Validar INICIAL y construir formato YYYY-P (ej. 2019-1)
+                const year = (row.INICIAL && !isNaN(row.INICIAL)) ? row.INICIAL : 2000;
+                const ciclo_actual = `${year}-${row.PERIODO || 1}`;
+
+                const tipoEvalBase = ['F', 'G', 'H'].includes(idEval) ? 'Extraordinario' : 'Ordinario';
+                
+                // UNIFICACIÓN: Se elimina el año/periodo de la llave.
+                // Esto garantiza que el P1 de 18-1 y el Final de 18-2 se agrupen en la misma fila.
+                const key = `${cleanStr(row.CLAVE_PLAN)}_${cleanStr(row.CLAVE_ASIGNATURA)}_${tipoEvalBase}`;
+
+                if (!kardexMap[key]) {
+                    kardexMap[key] = {
+                        clave_plan: cleanStr(row.CLAVE_PLAN),
+                        clave_asignatura: cleanStr(row.CLAVE_ASIGNATURA),
+                        ciclo_legado: ciclo_actual, // Valor temporal por defecto
+                        tipo_evaluacion: tipoEvalBase,
+                        parcial_1: null,
+                        parcial_2: null,
+                        parcial_3: null,
+                        promedio_calculado: null,
+                        calificacion_final: null,
+                        observaciones: []
+                    };
+                }
+
+                const observacion = cleanStr(row.OBSERVACION);
+                if (observacion && observacion !== '') {
+                    kardexMap[key].observaciones.push(observacion);
+                }
+
+                switch(idEval) {
+                    case 'A': kardexMap[key].parcial_1 = cal; break;
+                    case 'B': kardexMap[key].parcial_2 = cal; break;
+                    case 'C': kardexMap[key].parcial_3 = cal; break;
+                    case 'D': kardexMap[key].promedio_calculado = cal; break;
+                    case 'E': 
+                        kardexMap[key].calificacion_final = cal; 
+                        // REGRA DE NEGOCIO: El ciclo final es el que debe figurar en la retícula
+                        kardexMap[key].ciclo_legado = ciclo_actual; 
+                        break;
+                    case 'F': 
+                    case 'G': 
+                    case 'H': 
+                        kardexMap[key].calificacion_final = cal; 
+                        kardexMap[key].ciclo_legado = ciclo_actual; 
+                        break;
+                }
+            });
+
+            const payload = Object.values(kardexMap).map(item => ({
+                ...item,
+                observaciones: item.observaciones.length > 0 ? item.observaciones.join(' | ') : null
+            }));
+
+            return res.json(payload);
+        });
+    });
+});
+
 app.listen(port, '0.0.0.0', () => {
     console.log(`Servidor puente de Firebird (GES 4) corriendo en http://0.0.0.0:${port} y aceptando conexiones externas`);
 });
