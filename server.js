@@ -359,21 +359,28 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                 const cal = row.CALIFICACION === -999 ? null : Number(row.CALIFICACION);
                 const idEval = cleanStr(row.ID_EVAL);
                 
-                // 1. Año priorizando FINAL (para ciclos desfasados Otoño-Invierno)
-                const year = (row.FINAL && !isNaN(row.FINAL) && row.FINAL > 0) 
-                    ? row.FINAL 
-                    : ((row.INICIAL && !isNaN(row.INICIAL)) ? row.INICIAL : 2000);
-                    
-                // 2. Respetar el 0 estricto del GES 4
-                const periodoNum = (row.PERIODO !== null && row.PERIODO !== undefined) ? row.PERIODO : 1;
+                // 1. Extraer el Año (Priorizando FINAL, e ignorando ceros y nulos)
+                let year = null;
+                if (row.FINAL && !isNaN(row.FINAL) && row.FINAL > 0) {
+                    year = row.FINAL;
+                } else if (row.INICIAL && !isNaN(row.INICIAL) && row.INICIAL > 0) {
+                    year = row.INICIAL;
+                }
 
-                let ciclo_actual = `${year}-${periodoNum}`;
+                // 2. Extraer el Periodo
+                const periodoNum = (row.PERIODO !== null && row.PERIODO !== undefined && row.PERIODO !== '') ? Number(row.PERIODO) : null;
 
-                // 3. Extraer la descripción literal de la tabla CICLOS si el periodo es el comodín 0
-                if (periodoNum === 0 && row.NOMBRE_CICLO_LEGADO) {
-                    const descripcionCompleta = cleanStr(row.NOMBRE_CICLO_LEGADO);
-                    // Dividir por espacios y tomar el primer elemento (ej. "2023-2")
-                    ciclo_actual = descripcionCompleta.split(' ')[0];
+                // 3. Construir ciclo_actual solo si existen fechas reales (evita inventar "2000-1")
+                let ciclo_actual = null;
+                if (year !== null) {
+                    const p = periodoNum !== null ? periodoNum : 1;
+                    ciclo_actual = `${year}-${p}`;
+
+                    // Extraer descripción literal si el periodo es el comodín 0
+                    if (p === 0 && row.NOMBRE_CICLO_LEGADO) {
+                        const descripcionCompleta = cleanStr(row.NOMBRE_CICLO_LEGADO);
+                        ciclo_actual = descripcionCompleta.split(' ')[0];
+                    }
                 }
 
                 const tipoEvalBase = ['F', 'G', 'H'].includes(idEval) ? 'Extraordinario' : 'Ordinario';
@@ -394,8 +401,21 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                     };
                 }
 
-                // 4. Actualizar SIEMPRE el ciclo al más reciente para resolver los recursamientos
-                kardexMap[key].ciclo_legado = ciclo_actual;
+                // 4. REGLA DE NEGOCIO: El ciclo oficial lo dicta estrictamente la evaluación final.
+                const isFinalEval = ['E', 'F', 'G', 'H'].includes(idEval);
+
+                if (isFinalEval) {
+                    // Si es un final y trae un ciclo válido, se asigna con autoridad total.
+                    if (ciclo_actual !== null) {
+                        kardexMap[key].ciclo_legado = ciclo_actual;
+                    }
+                } else if (kardexMap[key].calificacion_final === null) {
+                    // Si está en curso (sin final) y un parcial trae ciclo válido, se le asigna temporalmente.
+                    if (ciclo_actual !== null) {
+                        kardexMap[key].ciclo_legado = ciclo_actual;
+                    }
+                }
+                // Si ciclo_actual es NULL (materia vacía/no cursada), simplemente se ignora y no altera el Kardex.
 
                 const observacion = cleanStr(row.OBSERVACION);
                 if (observacion && observacion !== '') {
