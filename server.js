@@ -315,10 +315,16 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
             K.CALIFICACION_1 AS CALIFICACION,
             K.FECHA AS FECHA_EVALUACION,
             K.INICIAL,
+            K.FINAL,
             K.PERIODO,
+            TRIM(C.DESCRIPCION) AS NOMBRE_CICLO_LEGADO,
             TRIM(O.OBSERVACIONES) AS OBSERVACION
         FROM ALUMNOS A
         JOIN ALUMNOS_KARDEX K ON A.NUMEROALUMNO = K.NUMEROALUMNO
+        LEFT JOIN CICLOS C 
+            ON K.INICIAL = C.INICIAL 
+            AND K.FINAL = C.FINAL 
+            AND K.PERIODO = C.PERIODO
         LEFT JOIN ALUMNOS_KARDEX_OBS O 
             ON K.NUMEROALUMNO = O.NUMEROALUMNO 
             AND K.ID_PLAN = O.ID_PLAN 
@@ -353,14 +359,24 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                 const cal = row.CALIFICACION === -999 ? null : Number(row.CALIFICACION);
                 const idEval = cleanStr(row.ID_EVAL);
                 
-                // ROBUSTEZ: Validar INICIAL y construir formato YYYY-P (ej. 2019-1)
-                const year = (row.INICIAL && !isNaN(row.INICIAL)) ? row.INICIAL : 2000;
-                const ciclo_actual = `${year}-${row.PERIODO || 1}`;
+                // 1. Año priorizando FINAL (para ciclos desfasados Otoño-Invierno)
+                const year = (row.FINAL && !isNaN(row.FINAL) && row.FINAL > 0) 
+                    ? row.FINAL 
+                    : ((row.INICIAL && !isNaN(row.INICIAL)) ? row.INICIAL : 2000);
+                    
+                // 2. Respetar el 0 estricto del GES 4
+                const periodoNum = (row.PERIODO !== null && row.PERIODO !== undefined) ? row.PERIODO : 1;
+
+                let ciclo_actual = `${year}-${periodoNum}`;
+
+                // 3. Extraer la descripción literal de la tabla CICLOS si el periodo es el comodín 0
+                if (periodoNum === 0 && row.NOMBRE_CICLO_LEGADO) {
+                    const descripcionCompleta = cleanStr(row.NOMBRE_CICLO_LEGADO);
+                    // Dividir por espacios y tomar el primer elemento (ej. "2023-2")
+                    ciclo_actual = descripcionCompleta.split(' ')[0];
+                }
 
                 const tipoEvalBase = ['F', 'G', 'H'].includes(idEval) ? 'Extraordinario' : 'Ordinario';
-                
-                // UNIFICACIÓN: Se elimina el año/periodo de la llave.
-                // Esto garantiza que el P1 de 18-1 y el Final de 18-2 se agrupen en la misma fila.
                 const key = `${cleanStr(row.CLAVE_PLAN)}_${cleanStr(row.CLAVE_ASIGNATURA)}_${tipoEvalBase}`;
 
                 if (!kardexMap[key]) {
@@ -378,8 +394,7 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                     };
                 }
 
-                // REGLA DE NEGOCIO: Siempre actualizar al ciclo más reciente procesado.
-                // Como el SQL viene ordenado cronológicamente, el último siempre es el correcto.
+                // 4. Actualizar SIEMPRE el ciclo al más reciente para resolver los recursamientos
                 kardexMap[key].ciclo_legado = ciclo_actual;
 
                 const observacion = cleanStr(row.OBSERVACION);
