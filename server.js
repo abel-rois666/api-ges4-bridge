@@ -367,7 +367,7 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                     kardexMap[key] = {
                         clave_plan: cleanStr(row.CLAVE_PLAN),
                         clave_asignatura: cleanStr(row.CLAVE_ASIGNATURA),
-                        ciclo_legado: ciclo_actual, // Valor temporal por defecto
+                        ciclo_legado: ciclo_actual,
                         tipo_evaluacion: tipoEvalBase,
                         parcial_1: null,
                         parcial_2: null,
@@ -377,6 +377,10 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                         observaciones: []
                     };
                 }
+
+                // REGLA DE NEGOCIO: Siempre actualizar al ciclo más reciente procesado.
+                // Como el SQL viene ordenado cronológicamente, el último siempre es el correcto.
+                kardexMap[key].ciclo_legado = ciclo_actual;
 
                 const observacion = cleanStr(row.OBSERVACION);
                 if (observacion && observacion !== '') {
@@ -389,15 +393,10 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                     case 'C': kardexMap[key].parcial_3 = cal; break;
                     case 'D': kardexMap[key].promedio_calculado = cal; break;
                     case 'E': 
-                        kardexMap[key].calificacion_final = cal; 
-                        // REGRA DE NEGOCIO: El ciclo final es el que debe figurar en la retícula
-                        kardexMap[key].ciclo_legado = ciclo_actual; 
-                        break;
                     case 'F': 
                     case 'G': 
                     case 'H': 
                         kardexMap[key].calificacion_final = cal; 
-                        kardexMap[key].ciclo_legado = ciclo_actual; 
                         break;
                 }
             });
