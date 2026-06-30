@@ -42,6 +42,74 @@ const formatFecha = (dateValue) => {
 // También se encarga de quitar espacios en blanco de sobra si la DB usa CHAR en lugar de VARCHAR
 const cleanStr = (str) => typeof str === 'string' ? str.trim() : str;
 
+/**
+ * SANITIZADOR DE CALIFICACIONES DEL LEGADO
+ * El sistema GES 4 inicializa todas las calificaciones en 0 aunque la materia no haya sido cursada.
+ * Esta función aplica las siguientes reglas para convertir esos 0s artificiales a null:
+ *
+ * Regla 1: Si TODOS los valores (p1, p2, p3, final) son 0 o null -> Todo se convierte a null.
+ *          Significa que la materia nunca fue tocada (pura inicialización del sistema).
+ *
+ * Regla 2: Si la calificación final es 0 pero al menos un parcial tiene valor real
+ *          (>0 o -555 NP) -> El final se convierte a null. La materia está en curso.
+ *
+ * Regla 3: Si la calificación final tiene un valor real (≥5 o -555) -> Se respeta todo.
+ *          Es una evaluación completa.
+ *
+ * Nota: En el sistema educativo mexicano, una calificación real de 0 no existe.
+ *       El mínimo regulatorio es 5 o NP (-555).
+ */
+const sanitizarCalificaciones = (p1, p2, p3, promedio, final) => {
+    const esCeroONull = (v) => v === null || v === undefined || v === 0;
+    const esValorReal = (v) => v !== null && v !== undefined && v !== 0; // incluye -555 (NP)
+
+    const todosVacios = esCeroONull(p1) && esCeroONull(p2) && esCeroONull(p3) && esCeroONull(final);
+
+    // Regla 1: Todo vacío -> Todo null
+    if (todosVacios) {
+        return { p1: null, p2: null, p3: null, promedio: null, final: null, estatus: 'SIN_EVALUAR' };
+    }
+
+    const tieneParcialesReales = esValorReal(p1) || esValorReal(p2) || esValorReal(p3);
+    const finalEsValorReal = esValorReal(final);
+
+    // Regla 2: Final en 0 pero hay parciales -> La materia está en curso
+    if (!finalEsValorReal && tieneParcialesReales) {
+        return {
+            p1: esCeroONull(p1) ? null : p1,
+            p2: esCeroONull(p2) ? null : p2,
+            p3: esCeroONull(p3) ? null : p3,
+            promedio: esCeroONull(promedio) ? null : promedio,
+            final: null,
+            estatus: 'EN_CURSO'
+        };
+    }
+
+    // Regla 3: Final real -> Evaluación completa, determinar si aprobó o reprobó
+    const pLimpio = (v) => esCeroONull(v) ? null : v;
+    let estatus;
+    if (final === -555) {
+        estatus = 'REPROBADA'; // NP
+    } else if (final >= 6) {
+        estatus = 'APROBADA';
+    } else {
+        // final entre 0.1 y 5.9, o exactamente 5, o cero con parciales todos vacíos (borde)
+        // Verificar si es reprobada real: final <= 5 y hay evidencia de que fue capturado
+        const tresParcialesCapturados = esValorReal(p1) && esValorReal(p2) && esValorReal(p3);
+        const finalEsCeroConParciales = final === 0 && tresParcialesCapturados;
+        estatus = (final > 0 && final < 6) || final === 5 || finalEsCeroConParciales ? 'REPROBADA' : 'PENDIENTE';
+    }
+
+    return {
+        p1: pLimpio(p1),
+        p2: pLimpio(p2),
+        p3: pLimpio(p3),
+        promedio: pLimpio(promedio),
+        final: final,
+        estatus
+    };
+};
+
 const MAPA_NIVELES = {
     'LP': 'PEDAGOGÍA',
     'LM': 'MERCADOTECNIA',
@@ -436,10 +504,32 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                 }
             });
 
-            const payload = Object.values(kardexMap).map(item => ({
-                ...item,
-                observaciones: item.observaciones.length > 0 ? item.observaciones.join(' | ') : null
-            }));
+            const payload = Object.values(kardexMap).map(item => {
+                const saneado = sanitizarCalificaciones(
+                    item.parcial_1,
+                    item.parcial_2,
+                    item.parcial_3,
+                    item.promedio_calculado,
+                    item.calificacion_final
+                );
+
+                return {
+                    clave_plan: item.clave_plan,
+                    clave_asignatura: item.clave_asignatura,
+                    ciclo_legado: item.ciclo_legado,
+                    tipo_evaluacion: item.tipo_evaluacion,
+                    parcial_1: saneado.p1,
+                    parcial_2: saneado.p2,
+                    parcial_3: saneado.p3,
+                    promedio_calculado: saneado.promedio,
+                    calificacion_final: saneado.final,
+                    estatus: saneado.estatus,
+                    observaciones: item.observaciones.length > 0 ? item.observaciones.join(' | ') : null
+                };
+            });
+
+            // Filtrar las que quedaron completamente sin evaluar si se desea (opcional)
+            // const payloadFiltrado = payload.filter(p => p.estatus !== 'SIN_EVALUAR');
 
             return res.json(payload);
         });
