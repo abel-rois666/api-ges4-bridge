@@ -59,7 +59,7 @@ const cleanStr = (str) => typeof str === 'string' ? str.trim() : str;
  * Nota: En el sistema educativo mexicano, una calificación real de 0 no existe.
  *       El mínimo regulatorio es 5 o NP (-555).
  */
-const sanitizarCalificaciones = (p1, p2, p3, promedio, final) => {
+const sanitizarCalificaciones = (p1, p2, p3, promedio, final, umbral = 6) => {
     const esCeroONull = (v) => v === null || v === undefined || v === 0;
     const esValorReal = (v) => v !== null && v !== undefined && v !== 0; // incluye -555 (NP)
 
@@ -86,18 +86,18 @@ const sanitizarCalificaciones = (p1, p2, p3, promedio, final) => {
     }
 
     // Regla 3: Final real -> Evaluación completa, determinar si aprobó o reprobó
+    // El umbral es dinámico: 6 para Licenciaturas, 8 para Especialidades (recibido como parámetro)
     const pLimpio = (v) => esCeroONull(v) ? null : v;
     let estatus;
     if (final === -555) {
         estatus = 'REPROBADA'; // NP
-    } else if (final >= 6) {
+    } else if (final >= umbral) {
         estatus = 'APROBADA';
     } else {
-        // final entre 0.1 y 5.9, o exactamente 5, o cero con parciales todos vacíos (borde)
-        // Verificar si es reprobada real: final <= 5 y hay evidencia de que fue capturado
+        // final entre 0.1 y (umbral-0.1), o cero con parciales capturados (borde)
         const tresParcialesCapturados = esValorReal(p1) && esValorReal(p2) && esValorReal(p3);
         const finalEsCeroConParciales = final === 0 && tresParcialesCapturados;
-        estatus = (final > 0 && final < 6) || final === 5 || finalEsCeroConParciales ? 'REPROBADA' : 'PENDIENTE';
+        estatus = (final > 0 && final < umbral) || finalEsCeroConParciales ? 'REPROBADA' : 'PENDIENTE';
     }
 
     return {
@@ -373,6 +373,8 @@ app.get('/api/legacy/academico/planes', (req, res) => {
 // Endpoint de Extracción de Kardex (Refactorizado con JOIN y Unificación)
 app.get('/api/legacy/kardex/:matricula', (req, res) => {
     const { matricula } = req.params;
+    // Opción C: El frontend pasa el umbral de aprobación como query param
+    const umbralAprobacion = req.query.umbral ? parseFloat(req.query.umbral) : 6;
 
     // 1 VIAJE DE RED: Hacemos el cruce de MATRICULA a NUMEROALUMNO directamente en SQL
     const query = `
@@ -490,8 +492,17 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                     kardexMap[key].observaciones.push(observacion);
                 }
 
+                // Detectar si el plan es de Especialidad por el prefijo ESP en la clave
+                const esEspecialidad = cleanStr(row.CLAVE_PLAN).includes('ESP');
+
                 switch(idEval) {
-                    case 'A': kardexMap[key].parcial_1 = cal; break;
+                    case 'A':
+                        kardexMap[key].parcial_1 = cal;
+                        // En Especialidades, la evaluación A es la calificación final directa
+                        if (esEspecialidad) {
+                            kardexMap[key].calificacion_final = cal;
+                        }
+                        break;
                     case 'B': kardexMap[key].parcial_2 = cal; break;
                     case 'C': kardexMap[key].parcial_3 = cal; break;
                     case 'D': kardexMap[key].promedio_calculado = cal; break;
@@ -510,7 +521,8 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                     item.parcial_2,
                     item.parcial_3,
                     item.promedio_calculado,
-                    item.calificacion_final
+                    item.calificacion_final,
+                    umbralAprobacion
                 );
 
                 return {
