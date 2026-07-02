@@ -548,6 +548,80 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
     });
 });
 
+// Endpoint de diagnóstico para ver columnas reales de la tabla CICLOS
+app.get('/api/legacy/ciclos-debug', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) return res.status(500).json({ error: err.message });
+
+        db.query("SELECT INICIAL, FINAL, PERIODO, DESCRIPCION, CODIGO_CORTO, DENOM_PERIODO FROM CICLOS WHERE INICIAL >= 2023 ORDER BY INICIAL, PERIODO", function(err, result) {
+            db.detach();
+            if (err) return res.status(500).json({ error: err.message });
+            return res.json(result || []);
+        });
+    });
+});
+
+// Endpoint para obtener todos los ciclos escolares
+app.get('/api/legacy/ciclos', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) {
+            console.error('Error conectando a Firebird:', err);
+            return res.status(500).json({ error: 'Error conectando a GES 4' });
+        }
+
+        // Columnas reales confirmadas por diagnóstico:
+        // CODIGO_CORTO ("06/1"), DENOM_PERIODO ("Semestre"/"Cuatrimestre"),
+        // FECHAINICIAL, FECHAFINAL, INICIAL (año inicio), FINAL (año fin), PERIODO, DESCRIPCION
+        const query = `
+            SELECT
+                TRIM(C.CODIGO_CORTO)    AS CODIGO_CORTO,
+                TRIM(C.DENOM_PERIODO)   AS DENOM_PERIODO,
+                TRIM(C.DESCRIPCION)     AS DESCRIPCION,
+                C.FECHAINICIAL,
+                C.FECHAFINAL,
+                C.INICIAL,
+                C.FINAL,
+                C.PERIODO
+            FROM CICLOS C
+            WHERE C.INICIAL > 0
+              AND C.CODIGO_CORTO IS NOT NULL
+            ORDER BY C.INICIAL, C.FINAL, C.PERIODO
+        `;
+        
+        db.query(query, function(err, result) {
+            db.detach();
+            if (err) {
+                console.error('Error en consulta de ciclos:', err);
+                return res.status(500).json({ error: 'Error consultando ciclos en GES 4', details: err.message });
+            }
+
+            const payload = (result || []).map(row => {
+                // Convertir "06/1" -> "2006-1"
+                let nombreFormateado = cleanStr(row.CODIGO_CORTO) || '';
+                if (nombreFormateado.includes('/')) {
+                    const parts = nombreFormateado.split('/');
+                    if (parts.length === 2 && parts[0].length === 2) {
+                        nombreFormateado = `20${parts[0]}-${parts[1]}`;
+                    }
+                }
+
+                return {
+                    nombre_formateado: nombreFormateado,
+                    descripcion: cleanStr(row.DESCRIPCION),
+                    denom_periodo: cleanStr(row.DENOM_PERIODO),
+                    fecha_inicial: row.FECHAINICIAL,
+                    fecha_final: row.FECHAFINAL,
+                    inicial: row.INICIAL,
+                    final: row.FINAL,
+                    periodo: row.PERIODO
+                };
+            });
+
+            return res.json(payload);
+        });
+    });
+});
+
 app.listen(port, '0.0.0.0', () => {
     console.log(`Servidor puente de Firebird (GES 4) corriendo en http://0.0.0.0:${port} y aceptando conexiones externas`);
 });
