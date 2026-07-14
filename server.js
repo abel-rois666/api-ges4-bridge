@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const Firebird = require('node-firebird');
+const { spawn } = require('child_process');
 require('dotenv').config();
 
 const app = express();
@@ -618,6 +619,172 @@ app.get('/api/legacy/ciclos', (req, res) => {
             });
 
             return res.json(payload);
+        });
+    });
+});
+
+// ==========================================
+// ENDPOINTS PARA ETL ACADÉMICO (EXTRAER DE FIREBIRD)
+// ==========================================
+
+app.get('/api/legacy/academico/alumnos-mapa', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) return res.status(500).json({ error: err.message });
+        const query = 'SELECT NUMEROALUMNO, MATRICULA FROM ALUMNOS WHERE MATRICULA IS NOT NULL';
+        db.query(query, function(err, result) {
+            db.detach();
+            if (err) return res.status(500).json({ error: err.message });
+            
+            const payload = (result || []).map(r => ({
+                numero_alumno: r.NUMEROALUMNO,
+                matricula: cleanStr(r.MATRICULA)
+            }));
+            res.json(payload);
+        });
+    });
+});
+
+app.get('/api/legacy/academico/profesores', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) return res.status(500).json({ error: err.message });
+        const query = 'SELECT CLAVEPROFESOR, NOMBREPROFESOR, RFCPROFESOR, CURP, STATUSACTUAL, EMAIL FROM PROFESORES';
+        db.query(query, function(err, result) {
+            db.detach();
+            if (err) return res.status(500).json({ error: err.message });
+            
+            const payload = (result || []).map(r => ({
+                CLAVE: cleanStr(r.CLAVEPROFESOR),
+                NOMBRE_COMPLETO: cleanStr(r.NOMBREPROFESOR),
+                RFC: cleanStr(r.RFCPROFESOR),
+                CURP: cleanStr(r.CURP),
+                ACTIVO: cleanStr(r.STATUSACTUAL),
+                EMAIL: cleanStr(r.EMAIL)
+            }));
+            res.json(payload);
+        });
+    });
+});
+
+// Endpoint para obtener el mapa de ID interno (NUMEROALUMNO) → MATRICULA de Firebird
+app.get('/api/legacy/academico/alumnos-mapa', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) return res.status(500).json({ error: err.message });
+        // Obtenemos el ID interno y la matrícula de cada alumno
+        const query = req.query.debug 
+            ? 'SELECT FIRST 1 * FROM ALUMNOS' 
+            : 'SELECT NUMEROALUMNO, MATRICULA FROM ALUMNOS WHERE MATRICULA IS NOT NULL';
+        db.query(query, function(err, result) {
+            db.detach();
+            if (err) return res.status(500).json({ error: err.message });
+            if (req.query.debug) {
+                const columns = result && result.length > 0 ? Object.keys(result[0]) : [];
+                return res.json({ columns, sample: result[0] });
+            }
+            const payload = (result || []).map(r => ({
+                numero_alumno: r.NUMEROALUMNO,
+                matricula: cleanStr(r.MATRICULA)
+            })).filter(r => r.matricula);
+            res.json(payload);
+        });
+    });
+});
+
+app.get('/api/legacy/academico/grupos', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) return res.status(500).json({ error: err.message });
+        const query = `
+            SELECT G.CODIGOGRUPO, G.INICIAL, G.FINAL, G.PERIODO, G.TURNO, G.GRADO, G.NIVEL, 
+                   C.CODIGO_CORTO, C.DESCRIPCION AS CICLO_DESC, TRIM(C.DENOM_PERIODO) AS DENOM_PERIODO,
+                   TRIM((SELECT FIRST 1 ID_PLAN FROM PROFESORES_GRUPOS PG 
+                    WHERE PG.CODIGOGRUPO = G.CODIGOGRUPO 
+                      AND PG.INICIAL = G.INICIAL 
+                      AND PG.FINAL = G.FINAL 
+                      AND PG.PERIODO = G.PERIODO)) AS ID_PLAN
+            FROM GRUPOS G
+            LEFT JOIN CICLOS C ON G.INICIAL = C.INICIAL AND G.FINAL = C.FINAL AND G.PERIODO = C.PERIODO
+        `;
+        db.query(query, function(err, result) {
+            db.detach();
+            if (err) return res.status(500).json({ error: err.message });
+            
+            const payload = (result || []).map(r => ({
+                GRUPO: cleanStr(r.CODIGOGRUPO),
+                INICIAL: r.INICIAL,
+                FINAL: r.FINAL,
+                PERIODO: r.PERIODO,
+                TURNO: cleanStr(r.TURNO),
+                GRADO: r.GRADO,
+                NIVEL: cleanStr(r.NIVEL),
+                ID_PLAN: cleanStr(r.ID_PLAN),
+                CODIGO_CORTO: cleanStr(r.CODIGO_CORTO),
+                CICLO_DESC: cleanStr(r.CICLO_DESC),
+                DENOM_PERIODO: cleanStr(r.DENOM_PERIODO)
+            }));
+            res.json(payload);
+        });
+    });
+});
+
+app.get('/api/legacy/academico/profesores-grupos', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) return res.status(500).json({ error: err.message });
+        const query = req.query.debug 
+            ? 'SELECT FIRST 1 * FROM PROFESORES_GRUPOS'
+            : `SELECT G.INICIAL, G.FINAL, G.PERIODO, G.ID_PLAN, G.CLAVEPROFESOR, G.CODIGOGRUPO, G.CLAVEASIGNATURA, C.CODIGO_CORTO, C.DESCRIPCION AS CICLO_DESC, TRIM(C.DENOM_PERIODO) AS DENOM_PERIODO
+               FROM PROFESORES_GRUPOS G
+               LEFT JOIN CICLOS C ON G.INICIAL = C.INICIAL AND G.FINAL = C.FINAL AND G.PERIODO = C.PERIODO`;
+        db.query(query, function(err, result) {
+            db.detach();
+            if (err) return res.status(500).json({ error: err.message });
+            if (req.query.debug) {
+                return res.json(result[0] ? Object.keys(result[0]) : []);
+            }
+            
+            const payload = (result || []).map(r => ({
+                INICIAL: r.INICIAL,
+                FINAL: r.FINAL,
+                PERIODO: r.PERIODO,
+                ID_PLAN: cleanStr(r.ID_PLAN),
+                DOCENTE: cleanStr(r.CLAVEPROFESOR),
+                GRUPO: cleanStr(r.CODIGOGRUPO),
+                ASIGNATURA: cleanStr(r.CLAVEASIGNATURA),
+                CODIGO_CORTO: cleanStr(r.CODIGO_CORTO),
+                CICLO_DESC: cleanStr(r.CICLO_DESC),
+                DENOM_PERIODO: cleanStr(r.DENOM_PERIODO)
+            }));
+            res.json(payload);
+        });
+    });
+});
+
+app.get('/api/legacy/academico/alumnos-grupos', (req, res) => {
+    Firebird.attach(dbOptions, function(err, db) {
+        if (err) return res.status(500).json({ error: err.message });
+        const query = req.query.debug
+            ? 'SELECT FIRST 1 * FROM ALUMNOS_GRUPOS'
+            : `SELECT G.INICIAL, G.FINAL, G.PERIODO, G.ID_PLAN, G.NUMEROALUMNO, G.CODIGOGRUPO, G.CLAVEASIGNATURA, C.CODIGO_CORTO, C.DESCRIPCION AS CICLO_DESC, TRIM(C.DENOM_PERIODO) AS DENOM_PERIODO
+               FROM ALUMNOS_GRUPOS G
+               LEFT JOIN CICLOS C ON G.INICIAL = C.INICIAL AND G.FINAL = C.FINAL AND G.PERIODO = C.PERIODO`;
+        db.query(query, function(err, result) {
+            db.detach();
+            if (err) return res.status(500).json({ error: err.message });
+            if (req.query.debug) {
+                return res.json(result[0] ? Object.keys(result[0]) : []);
+            }
+            
+            const payload = (result || []).map(r => ({
+                INICIAL: r.INICIAL,
+                FINAL: r.FINAL,
+                PERIODO: r.PERIODO,
+                ID_PLAN: cleanStr(r.ID_PLAN),
+                NUMERO_ALUMNO: r.NUMEROALUMNO,
+                GRUPO: cleanStr(r.CODIGOGRUPO),
+                ASIGNATURA: cleanStr(r.CLAVEASIGNATURA),
+                CODIGO_CORTO: cleanStr(r.CODIGO_CORTO),
+                CICLO_DESC: cleanStr(r.CICLO_DESC),
+                DENOM_PERIODO: cleanStr(r.DENOM_PERIODO)
+            }));
+            res.json(payload);
         });
     });
 });
