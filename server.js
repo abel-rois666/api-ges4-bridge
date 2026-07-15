@@ -447,10 +447,20 @@ app.get('/api/legacy/kardex/:matricula', (req, res) => {
                     const p = periodoNum !== null ? periodoNum : 1;
                     ciclo_actual = `${year}-${p}`;
 
-                    // Extraer descripción literal si el periodo es el comodín 0
-                    if (p === 0 && row.NOMBRE_CICLO_LEGADO) {
+                    // 4. Corrección Histórica: Si el catálogo de CICLOS tiene una descripción
+                    // confiamos en su prefijo de texto (ej. "2013-1") por encima de la columna PERIODO cruda.
+                    // Esto arregla inconsistencias de captura heredadas (como 2013-1 guardado con periodo 2).
+                    if (row.NOMBRE_CICLO_LEGADO) {
                         const descripcionCompleta = cleanStr(row.NOMBRE_CICLO_LEGADO);
-                        ciclo_actual = descripcionCompleta.split(' ')[0];
+                        const primerToken = descripcionCompleta.split(' ')[0];
+                        
+                        // Validar si el primer token tiene formato YYYY-P (ej. 2013-1)
+                        if (/^\d{4}-\d+$/.test(primerToken)) {
+                            ciclo_actual = primerToken;
+                        } else if (p === 0) {
+                            // Fallback para comodines 0 que no tengan formato estandarizado
+                            ciclo_actual = primerToken;
+                        }
                     }
                 }
 
